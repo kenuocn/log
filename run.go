@@ -13,39 +13,37 @@ import (
 
 func main() {
 	total := flag.Int("total", 100, "需要生成多少行日志 ?")
-	filePath := flag.String("filePath", "./dog.log", "日志路径")
+	filePath := flag.String("filePath", "/Users/zhanggaoyuan/go/src/test/log/dog.log", "日志路径")
 	flag.Parse() //解析
 
 	//生成 url规则
 	result := resource.ReuleResource()
 	urlList := resource.BuildUlr(result)
-	for i, url := range urlList {
-		fmt.Printf("第 %d 次;url = %s\n", i, url)
-	}
+	//for i, url := range urlList {
+	//	fmt.Printf("第 %d 次;url = %s\n", i, url)
+	//}
 
 	//按照要求,生成 total 行日志文件
-	f, err := os.Open(*filePath)
+
+	f, err := os.Create(*filePath)
 
 	if err != nil {
-		f, err = os.Create(*filePath)
-		if err != nil {
-			panic("创建文件失败")
-		}
-		panic("打开文件失败")
+		fmt.Println("os.Create err = ",err)
+		return
 	}
 
 	defer f.Close()
 
 	var logStr string
+
 	for i := 0; i <= *total; i++ {
 		currentUlr := urlList[randInt(0, len(urlList)-1)]
 		referUrl := urlList[randInt(0, len(urlList)-1)]
 		ua := uaList()[randInt(0, len(uaList())-1)]
-		logStr = makeLog(currentUlr, referUrl, ua)
-		logStr = logStr + logStr
+		logStr = logStr + makeLog(currentUlr, referUrl, ua) + "\n"
 	}
 
-	f.Write([]byte("1111"))
+	f.Write([]byte(logStr))
 	fmt.Println("done")
 }
 
@@ -72,7 +70,7 @@ func makeLog(currentUlr, referUrl, ua string) string {
 	u.Set("refer", referUrl)
 	u.Set("ua", ua)
 	paramsStr := u.Encode()
-	logTemplate := "192.168.0.101 - - [14/Jul/2018:20:14:13 -0400] \"GET /dog?{$paramsStr} HTTP/1.1\" 200 43 \"-\" \"{$ua}\" \"-\""
+	logTemplate := "192.168.0.101 - - [14/Jul/2018:20:14:13 -0400] \"GET /dog?{$paramsStr} HTTP/1.1\" 200 43 \"-\" \"{$ua}\" \"-\"\n"
 	log := strings.Replace(logTemplate, "{$paramsStr}", paramsStr, -1)
 	log = strings.Replace(log, "{$ua}", ua, -1)
 	return log
